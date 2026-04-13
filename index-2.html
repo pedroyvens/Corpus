@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Égypte au désert — Table de données</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Cinzel:wght@400;500;600&family=Source+Sans+3:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --sand:       #f5ede0;
+      --sand-dark:  #e8d9c4;
+      --papyrus:    #d4b896;
+      --ochre:      #b5834a;
+      --ochre-dark: #8a5f30;
+      --lapis:      #2c4a6e;
+      --lapis-lt:   #3d6491;
+      --ink:        #1e1a15;
+      --ink-lt:     #3d3528;
+      --stone:      #8c7d6a;
+      --stone-lt:   #b5a898;
+      --red-egypt:  #9e3a1f;
+      --gold:       #c9963a;
+      --warm-white: #fdfaf6;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--sand);
+      color: var(--ink);
+      font-family: 'Source Sans 3', sans-serif;
+      min-height: 100vh;
+      background-image:
+        radial-gradient(ellipse at 10% 0%,  rgba(181,131,74,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse at 90% 100%, rgba(44,74,110,0.06)  0%, transparent 60%);
+    }
+
+    /* ── HEADER ── */
+    header { background: var(--ink); position: relative; overflow: hidden; }
+    .hd-deco {
+      position: absolute; top: 0; right: 0; bottom: 0; width: 40%;
+      background: linear-gradient(135deg, transparent 40%, rgba(181,131,74,0.12) 100%);
+      pointer-events: none;
+    }
+    .hd-inner {
+      max-width: 1340px; margin: 0 auto; padding: 2.4rem 2rem 2rem;
+      display: flex; align-items: flex-end; gap: 2rem;
+      position: relative; z-index: 1;
+    }
+    .hd-text { flex: 1; }
+    .hd-tag {
+      font-family: 'Cinzel', serif; font-size: 0.66rem; letter-spacing: 0.26em;
+      color: var(--papyrus); text-transform: uppercase; margin-bottom: 0.45rem;
+    }
+    h1 {
+      font-family: 'Cinzel', serif; font-size: clamp(1.3rem, 2.8vw, 2.1rem);
+      font-weight: 500; color: var(--warm-white); line-height: 1.2; margin-bottom: 0.35rem;
+    }
+    .hd-sub {
+      font-family: 'EB Garamond', serif; font-style: italic;
+      font-size: 1rem; color: var(--stone-lt);
+    }
+    .hd-stats { text-align: right; font-family: 'Cinzel', serif; flex-shrink: 0; }
+    .stat-n { font-size: 2.4rem; font-weight: 600; color: var(--gold); line-height: 1; }
+    .stat-l { font-size: 0.63rem; letter-spacing: 0.15em; color: var(--stone-lt); text-transform: uppercase; }
+    .hd-bar { height: 3px; background: linear-gradient(90deg, var(--gold), var(--ochre), var(--papyrus), var(--ochre)); }
+
+    /* ── TOOLBAR ── */
+    .toolbar {
+      max-width: 1340px; margin: 0 auto; padding: 1.4rem 2rem;
+      display: flex; gap: 0.85rem; flex-wrap: wrap; align-items: center;
+    }
+    .search-wrap { flex: 1; min-width: 200px; position: relative; }
+    .search-wrap svg {
+      position: absolute; left: 0.9rem; top: 50%;
+      transform: translateY(-50%); color: var(--stone); pointer-events: none;
+    }
+    .search-input {
+      width: 100%; padding: 0.65rem 1rem 0.65rem 2.6rem;
+      border: 1.5px solid var(--papyrus); border-radius: 4px;
+      background: var(--warm-white); font-family: 'Source Sans 3', sans-serif;
+      font-size: 0.9rem; color: var(--ink); outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .search-input:focus { border-color: var(--ochre); box-shadow: 0 0 0 3px rgba(181,131,74,0.15); }
+    .search-input::placeholder { color: var(--stone); }
+
+    select.fsel {
+      padding: 0.65rem 0.9rem; border: 1.5px solid var(--papyrus); border-radius: 4px;
+      background: var(--warm-white); font-family: 'Source Sans 3', sans-serif;
+      font-size: 0.86rem; color: var(--ink-lt); cursor: pointer; outline: none;
+      transition: border-color 0.2s; min-width: 150px;
+    }
+    select.fsel:focus { border-color: var(--ochre); }
+
+    .rc {
+      font-family: 'EB Garamond', serif; font-size: 0.9rem;
+      color: var(--stone); font-style: italic; white-space: nowrap; margin-left: auto;
+    }
+
+    /* ── TABLE ── */
+    .table-wrap {
+      max-width: 1340px; margin: 0 auto 3rem; padding: 0 2rem; overflow-x: auto;
+    }
+    #loading-msg {
+      text-align: center; padding: 2rem;
+      font-family: 'EB Garamond', serif; font-style: italic; color: var(--stone);
+    }
+
+    table {
+      width: 100%; border-collapse: collapse;
+      background: var(--warm-white); border-radius: 6px;
+      overflow: hidden; box-shadow: 0 2px 20px rgba(30,26,21,0.1);
+      table-layout: fixed;
+    }
+
+    /* Fixed column widths */
+    col.c-doc    { width: 130px; }
+    col.c-cat    { width: 160px; }
+    col.c-site   { width: 170px; }
+    col.c-chron  { width: 150px; }
+    col.c-lex    { width: auto;  }
+    col.c-script { width: 115px; }
+    col.c-btn    { width: 76px;  }
+
+    thead tr { background: var(--ink-lt); color: var(--sand); }
+    th {
+      font-family: 'Cinzel', serif; font-size: 0.66rem; letter-spacing: 0.12em;
+      text-transform: uppercase; padding: 0.85rem 0.9rem;
+      text-align: left; white-space: nowrap; overflow: hidden;
+      cursor: pointer; user-select: none;
+    }
+    th:last-child { cursor: default; }
+    th:hover:not(:last-child) { background: var(--ink); }
+    .sa { margin-left: 4px; opacity: 0.35; font-size: 0.65em; }
+    th.asc  .sa::after { content: '▲'; opacity: 1; }
+    th.desc .sa::after { content: '▼'; opacity: 1; }
+
+    tbody tr { border-bottom: 1px solid var(--sand-dark); cursor: pointer; transition: background 0.13s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(181,131,74,0.08); }
+
+    td {
+      padding: 0.7rem 0.9rem; font-size: 0.88rem; vertical-align: middle;
+      /* prevent overflow into adjacent cells */
+      overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+      max-width: 0; /* required for ellipsis to work with table-layout:fixed */
+    }
+    td.c-doc {
+      font-family: 'Cinzel', serif; font-size: 0.76rem;
+      font-weight: 600; color: var(--lapis);
+    }
+    td.c-btn { overflow: visible; text-align: center; padding: 0.5rem; }
+
+    .badge {
+      display: inline-block; padding: 0.13rem 0.5rem; border-radius: 20px;
+      font-size: 0.73rem; font-weight: 500;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+    }
+    .badge-cat   { background: rgba(44,74,110,0.12); color: var(--lapis); }
+    .badge-chron { background: rgba(158,58,31,0.1);  color: var(--red-egypt); }
+
+    .btn-fiche {
+      background: none; border: 1px solid var(--papyrus); border-radius: 3px;
+      padding: 0.22rem 0.55rem; font-family: 'Cinzel', serif;
+      font-size: 0.61rem; letter-spacing: 0.07em; color: var(--ochre-dark);
+      cursor: pointer; transition: all 0.15s; white-space: nowrap;
+    }
+    .btn-fiche:hover { background: var(--ochre-dark); color: white; border-color: var(--ochre-dark); }
+
+    tr.empty-row td {
+      text-align: center; padding: 3.5rem 2rem;
+      font-family: 'EB Garamond', serif; font-style: italic; color: var(--stone);
+      white-space: normal; overflow: visible; max-width: none;
+    }
+    .ei { font-size: 2.4rem; display: block; margin-bottom: 0.6rem; }
+
+    /* ── MODAL ── */
+    .overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(30,26,21,0.72); z-index: 200;
+      align-items: center; justify-content: center;
+      padding: 1.5rem; backdrop-filter: blur(2px);
+    }
+    .overlay.open { display: flex; }
+    .modal {
+      background: var(--warm-white); border-radius: 8px;
+      max-width: 880px; width: 100%; max-height: 90vh; overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(30,26,21,0.38);
+      animation: mIn 0.22s ease;
+    }
+    @keyframes mIn {
+      from { opacity: 0; transform: translateY(18px) scale(0.98); }
+      to   { opacity: 1; transform: none; }
+    }
+    .modal-hd {
+      background: var(--ink); color: var(--warm-white);
+      padding: 1.4rem 1.8rem; display: flex; align-items: flex-start;
+      justify-content: space-between; gap: 1rem;
+      border-radius: 8px 8px 0 0; position: sticky; top: 0; z-index: 2;
+    }
+    .modal-id {
+      font-family: 'Cinzel', serif; font-size: 0.66rem;
+      letter-spacing: 0.2em; color: var(--gold); text-transform: uppercase; margin-bottom: 0.28rem;
+    }
+    .modal-name {
+      font-family: 'EB Garamond', serif; font-size: 1.35rem;
+      font-weight: 500; line-height: 1.3;
+    }
+    .btn-x {
+      background: none; border: none; color: var(--stone-lt);
+      font-size: 1.35rem; cursor: pointer; padding: 0.15rem;
+      flex-shrink: 0; line-height: 1; transition: color 0.15s;
+    }
+    .btn-x:hover { color: white; }
+
+    .modal-body { padding: 1.8rem; }
+    .msec { margin-bottom: 1.7rem; }
+    .msec-title {
+      font-family: 'Cinzel', serif; font-size: 0.63rem; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--gold);
+      border-bottom: 1px solid var(--sand-dark); padding-bottom: 0.35rem; margin-bottom: 0.9rem;
+    }
+    .mgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 0.9rem 1.2rem; }
+    .mfield.wide { grid-column: 1 / -1; }
+    .mf-label {
+      font-size: 0.7rem; font-weight: 500; text-transform: uppercase;
+      letter-spacing: 0.09em; color: var(--stone); margin-bottom: 0.2rem;
+    }
+    .mf-val {
+      font-family: 'EB Garamond', serif; font-size: 1.02rem;
+      color: var(--ink); line-height: 1.4; word-break: break-word;
+    }
+    .mf-val.na { color: var(--stone-lt); font-style: italic; font-size: 0.88rem; }
+
+    .modal-ft {
+      padding: 1rem 1.8rem; border-top: 1px solid var(--sand-dark);
+      display: flex; justify-content: flex-end;
+    }
+    .btn-close {
+      padding: 0.58rem 1.3rem; background: var(--ink); color: var(--warm-white);
+      border: none; border-radius: 4px; font-family: 'Cinzel', serif;
+      font-size: 0.7rem; letter-spacing: 0.1em; cursor: pointer; transition: background 0.18s;
+    }
+    .btn-close:hover { background: var(--ink-lt); }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center; padding: 1.8rem 2rem;
+      font-family: 'EB Garamond', serif; font-style: italic;
+      font-size: 0.92rem; color: var(--stone); border-top: 1px solid var(--sand-dark);
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 7px; height: 7px; }
+    ::-webkit-scrollbar-track { background: var(--sand-dark); }
+    ::-webkit-scrollbar-thumb { background: var(--papyrus); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--ochre); }
+
+    @media (max-width: 720px) {
+      .toolbar { flex-direction: column; }
+      .hd-stats { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="hd-deco"></div>
+  <div class="hd-inner">
+    <div class="hd-text">
+      <div class="hd-tag">Table de données · Sources primaires</div>
+      <h1>Sources trouvées dans et sur le désert</h1>
+      <div class="hd-sub">Inscriptions rupestres, stèles, objets inscrits &amp; mobilier archéologique · IIIe–IIe millénaires av.&nbsp;n.-è.</div>
+    </div>
+    <div class="hd-stats">
+      <div class="stat-n" id="total-count">—</div>
+      <div class="stat-l">Documents</div>
+    </div>
+  </div>
+  <div class="hd-bar"></div>
+</header>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <div class="search-wrap">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <input class="search-input" id="s-global" type="text"
+      placeholder="Rechercher par divinité, site, roi, lexique désert…" autocomplete="off">
+  </div>
+  <select class="fsel" id="f-cat"><option value="">Toutes les catégories</option></select>
+  <select class="fsel" id="f-chron"><option value="">Toute chronologie</option></select>
+  <select class="fsel" id="f-site"><option value="">Tous les sites</option></select>
+  <span class="rc" id="rc"></span>
+</div>
+
+<!-- TABLE -->
+<div class="table-wrap">
+  <div id="loading-msg">Chargement du corpus…</div>
+  <table id="main-table">
+    <colgroup>
+      <col class="c-doc">
+      <col class="c-cat">
+      <col class="c-site">
+      <col class="c-chron">
+      <col class="c-lex">
+      <col class="c-script">
+      <col class="c-btn">
+    </colgroup>
+    <thead>
+      <tr>
+        <th data-key="nom">Document<span class="sa"></span></th>
+        <th data-key="catégorie">Catégorie<span class="sa"></span></th>
+        <th data-key="site">Site<span class="sa"></span></th>
+        <th data-key="chronologie">Chronologie<span class="sa"></span></th>
+        <th data-key="lexique désert">Lexique désert<span class="sa"></span></th>
+        <th data-key="type écriture">Écriture<span class="sa"></span></th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal" id="modal" role="dialog" aria-modal="true">
+    <div class="modal-hd">
+      <div>
+        <div class="modal-id" id="m-id"></div>
+        <div class="modal-name" id="m-name"></div>
+      </div>
+      <button class="btn-x" id="btn-x" aria-label="Fermer">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="msec">
+        <div class="msec-title">𓂋 Localisation &amp; Datation</div>
+        <div class="mgrid">
+          <div class="mfield"><div class="mf-label">Locus</div><div class="mf-val" id="m-locus"></div></div>
+          <div class="mfield"><div class="mf-label">Roi</div><div class="mf-val" id="m-roi"></div></div>
+          <div class="mfield"><div class="mf-label">Dynastie</div><div class="mf-val" id="m-dynastie"></div></div>
+        </div>
+      </div>
+
+      <div class="msec">
+        <div class="msec-title">𓇳 Contenu Religieux &amp; Textuel</div>
+        <div class="mgrid">
+          <div class="mfield"><div class="mf-label">Divinités</div><div class="mf-val" id="m-divinites"></div></div>
+          <div class="mfield"><div class="mf-label">Épithètes</div><div class="mf-val" id="m-epithetes"></div></div>
+          <div class="mfield wide"><div class="mf-label">Répertoire textuel</div><div class="mf-val" id="m-repertoire"></div></div>
+          <div class="mfield"><div class="mf-label">Titres de particuliers</div><div class="mf-val" id="m-titres"></div></div>
+        </div>
+      </div>
+
+      <div class="msec">
+        <div class="msec-title">𓏲 Description Visuelle</div>
+        <div class="mgrid">
+          <div class="mfield wide"><div class="mf-label">Iconographie</div><div class="mf-val" id="m-icono"></div></div>
+        </div>
+      </div>
+
+      <div class="msec">
+        <div class="msec-title">𓍲 Données Techniques</div>
+        <div class="mgrid">
+          <div class="mfield"><div class="mf-label">Matière</div><div class="mf-val" id="m-matiere"></div></div>
+          <div class="mfield"><div class="mf-label">Technique</div><div class="mf-val" id="m-technique"></div></div>
+          <div class="mfield"><div class="mf-label">Dimensions</div><div class="mf-val" id="m-dimensions"></div></div>
+          <div class="mfield"><div class="mf-label">Conservation</div><div class="mf-val" id="m-conservation"></div></div>
+          <div class="mfield"><div class="mf-label">Type de cintrage</div><div class="mf-val" id="m-cintrage"></div></div>
+        </div>
+      </div>
+
+      <div class="msec">
+        <div class="msec-title">𓏏 Bibliographie</div>
+        <div class="mgrid">
+          <div class="mfield wide"><div class="mf-label">Bibliographie</div><div class="mf-val" id="m-biblio"></div></div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-ft">
+      <button class="btn-close" id="btn-close">Fermer la fiche</button>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <em>Égypte au désert — Construction culturelle d'un espace stratégique aux III<sup>e</sup> et II<sup>e</sup> millénaires av.&nbsp;n.-è.</em>
+</footer>
+
+<script>
+'use strict';
+
+/* ── State ── */
+let allRows  = [];
+let filtered = [];
+let sortKey  = null;
+let sortDir  = 1;
+
+/* ── CSV parser ──
+   Handles semicolon or comma delimiter, RFC-4180 quoted fields
+   (embedded quotes "", embedded newlines inside quotes)
+*/
+function parseCSV(raw) {
+  raw = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+  // Detect delimiter from first line
+  const nl = raw.indexOf('\n');
+  const fl = nl > -1 ? raw.slice(0, nl) : raw;
+  const delim = fl.split(';').length >= fl.split(',').length ? ';' : ',';
+
+  // Tokenise entire file
+  const allCells = [];
+  const rowBreaks = []; // indices into allCells where a new row starts
+  let cur = '';
+  let inQ = false;
+
+  rowBreaks.push(0);
+  for (let i = 0; i < raw.length; i++) {
+    const c = raw[i];
+    if (inQ) {
+      if (c === '"' && raw[i + 1] === '"') { cur += '"'; i++; }
+      else if (c === '"') { inQ = false; }
+      else { cur += c; }
+    } else {
+      if (c === '"') { inQ = true; }
+      else if (c === delim) { allCells.push(cur.trim()); cur = ''; }
+      else if (c === '\n') {
+        allCells.push(cur.trim()); cur = '';
+        rowBreaks.push(allCells.length);
+      } else { cur += c; }
+    }
+  }
+  allCells.push(cur.trim());
+
+  // Build rows from flat cell array
+  const rows = [];
+  for (let r = 0; r < rowBreaks.length; r++) {
+    const start = rowBreaks[r];
+    const end   = r + 1 < rowBreaks.length ? rowBreaks[r + 1] : allCells.length;
+    rows.push(allCells.slice(start, end));
+  }
+
+  // Filter completely blank rows
+  const nonEmpty = rows.filter(r => r.some(c => c !== ''));
+  if (nonEmpty.length < 2) return [];
+
+  const headers = nonEmpty[0].map(h => h.toLowerCase().trim());
+  const data = [];
+  for (let i = 1; i < nonEmpty.length; i++) {
+    const cells = nonEmpty[i];
+    const obj = {};
+    headers.forEach((h, idx) => { obj[h] = cells[idx] !== undefined ? cells[idx] : ''; });
+    data.push(obj);
+  }
+  return data;
+}
+
+/* ── Key resolver ──
+   For each canonical field, list all accepted CSV header names (lowercase).
+   Resolution: exact match first, then partial match.
+*/
+const KEYS = {
+  nom:                    ['nom', 'name', 'document', 'doc', 'id'],
+  catégorie:              ['catégorie', 'categorie', 'cat', 'type'],
+  site:                   ['site'],
+  locus:                  ['locus', 'lieu', 'localisation'],
+  chronologie:            ['chronologie', 'période', 'periode', 'datation', 'empire'],
+  divinités:              ['divinités', 'divinites', 'dieux', 'déesse', 'deesse'],
+  épithètes:              ['épithètes', 'epithetes', 'epithete', 'épithète'],
+  iconographie:           ['iconographie', 'icono'],
+  'répertoire textuel':   ['répertoire textuel', 'repertoire textuel', 'répertoire', 'repertoire', 'texte'],
+  roi:                    ['roi', 'pharaon', 'king'],
+  dynastie:               ['dynastie', 'dynasty'],
+  'lexique désert':       ['lexique "désert"', 'lexique désert', 'lexique desert', 'lexique "desert"', 'lexique'],
+  'titres de particuliers': ['titres de particuliers', 'titres', 'titre'],
+  'type écriture':        ["type d'écriture", 'type ecriture', 'écriture', 'ecriture', 'script'],
+  bibliographie:          ['bibliographie', 'biblio', 'référence', 'reference'],
+  matière:                ['matière', 'matiere', 'matériau', 'materiau', 'material'],
+  conservation:           ['conservation', 'état', 'etat'],
+  dimensions:             ['dimensions', 'dimension', 'mesures', 'mesure', 'taille'],
+  technique:              ['technique'],
+  'type de cintrage':     ['type de cintrage', 'cintrage', 'cintre', 'type cintrage'],
+};
+
+let resolved = {}; // canonical → original-case CSV header
+
+function buildKeyMap(sampleRow) {
+  resolved = {};
+  const origKeys = Object.keys(sampleRow);
+  const lowKeys  = origKeys.map(k => k.toLowerCase().trim());
+
+  for (const [canon, variants] of Object.entries(KEYS)) {
+    // 1. Exact match
+    for (const v of variants) {
+      const i = lowKeys.indexOf(v);
+      if (i > -1) { resolved[canon] = origKeys[i]; break; }
+    }
+    if (resolved[canon]) continue;
+    // 2. Partial match (variant is substring of header or vice-versa)
+    for (const v of variants) {
+      const i = lowKeys.findIndex(k => k.includes(v) || v.includes(k));
+      if (i > -1) { resolved[canon] = origKeys[i]; break; }
+    }
+  }
+}
+
+function get(row, canon) {
+  const key = resolved[canon];
+  return key ? (row[key] || '') : '';
+}
+
+/* ── Load data.csv ── */
+document.getElementById('loading-msg').style.display = 'block';
+
+fetch('data.csv')
+  .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+  .then(text => {
+    document.getElementById('loading-msg').style.display = 'none';
+    allRows = parseCSV(text);
+    if (allRows.length > 0) buildKeyMap(allRows[0]);
+    document.getElementById('total-count').textContent = allRows.length;
+    populateFilters();
+    applyFilters();
+  })
+  .catch(err => {
+    document.getElementById('loading-msg').style.display = 'none';
+    document.getElementById('tbody').innerHTML =
+      '<tr class="empty-row"><td colspan="7">' +
+      '<span class="ei">𓂀</span>' +
+      'Impossible de charger <strong>data.csv</strong>.<br>' +
+      'Vérifiez qu\'il est bien présent à la racine du dépôt GitHub.</td></tr>';
+    console.error(err);
+  });
+
+/* ── Filters ── */
+function populateFilters() {
+  fill('f-cat',   'catégorie',   'Toutes les catégories');
+  fill('f-chron', 'chronologie', 'Toute chronologie');
+  fill('f-site',  'site',        'Tous les sites');
+}
+
+function fill(id, canon, label) {
+  const sel  = document.getElementById(id);
+  const prev = sel.value;
+  const vals = [...new Set(allRows.map(r => get(r, canon)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'fr'));
+  sel.innerHTML = '<option value="">' + label + '</option>';
+  vals.forEach(v => {
+    const o = document.createElement('option');
+    o.value = v; o.textContent = v; sel.appendChild(o);
+  });
+  if (vals.includes(prev)) sel.value = prev;
+}
+
+['s-global','f-cat','f-chron','f-site'].forEach(id =>
+  document.getElementById(id).addEventListener(id === 's-global' ? 'input' : 'change', applyFilters)
+);
+
+function applyFilters() {
+  const q     = document.getElementById('s-global').value.toLowerCase().trim();
+  const cat   = document.getElementById('f-cat').value;
+  const chron = document.getElementById('f-chron').value;
+  const site  = document.getElementById('f-site').value;
+
+  filtered = allRows.filter(row => {
+    if (cat   && get(row,'catégorie')   !== cat)   return false;
+    if (chron && get(row,'chronologie') !== chron) return false;
+    if (site  && get(row,'site')        !== site)  return false;
+    if (q && !Object.values(row).join(' ').toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  if (sortKey) doSort();
+  renderTable();
+
+  const n = filtered.length, t = allRows.length;
+  document.getElementById('rc').textContent =
+    n === t ? t + ' document' + (t !== 1 ? 's' : '') : n + ' / ' + t + ' documents';
+}
+
+/* ── Sorting ── */
+document.querySelectorAll('th[data-key]').forEach(th => {
+  th.addEventListener('click', () => {
+    const k = th.dataset.key;
+    if (sortKey === k) sortDir *= -1; else { sortKey = k; sortDir = 1; }
+    document.querySelectorAll('th[data-key]').forEach(t => t.classList.remove('asc','desc'));
+    th.classList.add(sortDir === 1 ? 'asc' : 'desc');
+    doSort(); renderTable();
+  });
+});
+
+function doSort() {
+  filtered.sort((a, b) => {
+    const va = get(a, sortKey) || '';
+    const vb = get(b, sortKey) || '';
+    return va.localeCompare(vb, 'fr', {sensitivity:'base'}) * sortDir;
+  });
+}
+
+/* ── Render ── */
+function esc(s) {
+  return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : '';
+}
+
+function renderTable() {
+  const tbody = document.getElementById('tbody');
+  if (!allRows.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="7"><span class="ei">𓂀</span>Aucune donnée chargée.</td></tr>';
+    return;
+  }
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Aucun document ne correspond à cette recherche.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map((row, i) => {
+    const nom    = esc(get(row,'nom'));
+    const cat    = esc(get(row,'catégorie'));
+    const site   = esc(get(row,'site'));
+    const chron  = esc(get(row,'chronologie'));
+    const lex    = esc(get(row,'lexique désert'));
+    const script = esc(get(row,'type écriture'));
+    return '<tr onclick="openModal(' + i + ')">' +
+      '<td class="c-doc" title="' + nom + '">'    + (nom    || '—') + '</td>' +
+      '<td title="' + cat + '">'                  + (cat    ? '<span class="badge badge-cat">'   + cat   + '</span>' : '—') + '</td>' +
+      '<td title="' + site + '">'                 + (site   || '—') + '</td>' +
+      '<td title="' + chron + '">'                + (chron  ? '<span class="badge badge-chron">' + chron + '</span>' : '—') + '</td>' +
+      '<td title="' + lex + '">'                  + (lex    || '—') + '</td>' +
+      '<td title="' + script + '">'               + (script || '—') + '</td>' +
+      '<td class="c-btn"><button class="btn-fiche" onclick="event.stopPropagation();openModal(' + i + ')">Fiche ▸</button></td>' +
+      '</tr>';
+  }).join('');
+}
+
+/* ── Modal ── */
+function openModal(idx) {
+  const row = filtered[idx];
+  if (!row) return;
+  const nom  = get(row,'nom');
+  const cat  = get(row,'catégorie');
+  const site = get(row,'site');
+  document.getElementById('m-id').textContent   = nom || 'Document';
+  document.getElementById('m-name').textContent = [cat,site].filter(Boolean).join(' · ') || 'Fiche détaillée';
+  setF('m-locus',       get(row,'locus'));
+  setF('m-roi',         get(row,'roi'));
+  setF('m-dynastie',    get(row,'dynastie'));
+  setF('m-divinites',   get(row,'divinités'));
+  setF('m-epithetes',   get(row,'épithètes'));
+  setF('m-repertoire',  get(row,'répertoire textuel'));
+  setF('m-titres',      get(row,'titres de particuliers'));
+  setF('m-icono',       get(row,'iconographie'));
+  setF('m-matiere',     get(row,'matière'));
+  setF('m-technique',   get(row,'technique'));
+  setF('m-dimensions',  get(row,'dimensions'));
+  setF('m-conservation',get(row,'conservation'));
+  setF('m-cintrage',    get(row,'type de cintrage'));
+  setF('m-biblio',      get(row,'bibliographie'));
+  document.getElementById('overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function setF(id, val) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const v = val && val.trim();
+  el.textContent = v || '—';
+  el.classList.toggle('na', !v);
+}
+
+function closeModal() {
+  document.getElementById('overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('btn-x').addEventListener('click', closeModal);
+document.getElementById('btn-close').addEventListener('click', closeModal);
+document.getElementById('overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+</script>
+</body>
+</html>
